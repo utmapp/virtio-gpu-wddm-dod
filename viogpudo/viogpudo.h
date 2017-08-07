@@ -309,6 +309,10 @@ private:
     void ThreadWorkRoutine(void);
     void ConfigChanged(void);
     NTSTATUS VirtIoDeviceInit(void);
+
+    NTSTATUS EscapeCreateObject(VOID *data, UINT32 size);
+    NTSTATUS EscapeUpdateObject(VOID *data, UINT32 size);
+    NTSTATUS EscapeDeleteObject(VOID *data, UINT32 size);
 private:
     VirtIODevice m_VioDev;
     PUCHAR  m_IoBase;
@@ -327,6 +331,7 @@ private:
     VioGpuObj* m_pCursorBuf;
     VioGpuMemSegment m_CursorSegment;
     VioGpuMemSegment m_FrameSegment;
+    VioGpuMemSegment m_ICDSegment;
     volatile ULONG m_PendingWorks;
     KEVENT m_ConfigUpdateEvent;
     PETHREAD m_pWorkThread;

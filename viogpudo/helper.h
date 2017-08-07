@@ -63,6 +63,7 @@ extern "C" {
 #define MIN_HEIGHT_SIZE            768
 #define VGPU_BPP                   32
 #define VGA_BPP                    32
+#define MAX_ICD_MEMORY             (1024 * 1024)
 
 #define VIOGPUTAG                  'OIVg'
 

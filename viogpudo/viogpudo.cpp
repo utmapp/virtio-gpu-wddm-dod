@@ -2653,6 +2653,12 @@ NTSTATUS VioGpuAdapter::HWInit(PCM_RESOURCE_LIST pResList, DXGK_DISPLAY_INFORMAT
             break;
         }
 
+        if (!m_ICDSegment.Init(MAX_ICD_MEMORY, NULL))
+        {
+            DbgPrint(TRACE_LEVEL_FATAL, ("%s failed to allocate ICD memory segment\n", __FUNCTION__));
+            break;
+        }
+
         status = virtio_find_queues(
             &m_VioDev,
             2,
@@ -2756,6 +2762,7 @@ NTSTATUS VioGpuAdapter::HWClose(void)
 
     m_FrameSegment.Close();
     m_CursorSegment.Close();
+    m_ICDSegment.Close();
 
     DbgPrint(TRACE_LEVEL_INFORMATION, ("<--- %s\n", __FUNCTION__));
 
@@ -3004,6 +3011,100 @@ NTSTATUS VioGpuAdapter::SetPointerPosition(_In_ CONST DXGKARG_SETPOINTERPOSITION
     return STATUS_SUCCESS;
 }
 
+struct gpu_allocate_object_t {
+    UINT32 driver_cmd;
+    UINT32 size;
+    UINT64 handle;
+};
+
+struct gpu_update_object_t {
+    UINT32 driver_cmd;
+    UINT64 handle;
+    UINT32 size;
+    VOID* ptr;
+};
+
+struct gpu_delete_object_t {
+    UINT32 driver_cmd;
+    UINT64 handle;
+};
+
+NTSTATUS VioGpuAdapter::EscapeCreateObject(VOID *data, UINT32 size)
+{
+    PAGED_CODE();
+
+    gpu_allocate_object_t *info = NULL;
+    VioGpuObj *obj = NULL;
+
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %s\n", __FUNCTION__));
+
+    if (size != sizeof(gpu_allocate_object_t))
+        return STATUS_INVALID_BUFFER_SIZE;
+
+    info = reinterpret_cast<gpu_allocate_object_t*>(data);
+
+    obj = new(NonPagedPoolNx)VioGpuObj();
+
+    if (!obj)
+        return STATUS_NO_MEMORY;
+    if (!obj->Init(info->size, &m_FrameSegment))
+        return STATUS_NO_MEMORY;
+
+    info->handle = reinterpret_cast<UINT64>(obj);
+
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
+    return STATUS_SUCCESS;
+}
+
+NTSTATUS VioGpuAdapter::EscapeUpdateObject(VOID *data, UINT32 size)
+{
+    PAGED_CODE();
+
+    gpu_update_object_t *info = NULL;
+    VioGpuObj *object = NULL;
+    VOID *ptr = NULL;
+
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %s\n", __FUNCTION__));
+
+    if (size != sizeof(gpu_update_object_t))
+        return STATUS_INVALID_BUFFER_SIZE;
+    if (!object)
+        return STATUS_INVALID_PARAMETER_1;
+
+    info = reinterpret_cast<gpu_update_object_t*>(data);
+    object = reinterpret_cast<VioGpuObj*>(info->handle);
+
+    ptr = object->GetVirtualAddress();
+    memcpy_s(ptr, info->size, info->ptr, info->size);
+
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
+    return STATUS_SUCCESS;
+}
+
+NTSTATUS VioGpuAdapter::EscapeDeleteObject(VOID *data, UINT32 size)
+{
+    PAGED_CODE();
+
+    gpu_delete_object_t *info = NULL;
+    VioGpuObj *object = NULL;
+
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %s\n", __FUNCTION__));
+
+    if (size != sizeof(gpu_delete_object_t))
+        return STATUS_INVALID_BUFFER_SIZE;
+    if (info->handle == 0)
+        return STATUS_DATA_ERROR;
+
+    info = reinterpret_cast<gpu_delete_object_t*>(data);
+    object = reinterpret_cast<VioGpuObj*>(info->handle);
+
+    delete object;
+
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
+    return STATUS_SUCCESS;
+}
+
+
 NTSTATUS VioGpuAdapter::Escape(_In_ CONST DXGKARG_ESCAPE *pEscape)
 {
     PAGED_CODE();
@@ -3024,12 +3125,15 @@ NTSTATUS VioGpuAdapter::Escape(_In_ CONST DXGKARG_ESCAPE *pEscape)
 
     switch (*cmd_type) {
     case OPENGL_ICD_CMD_ALLOCATE:
+        res = EscapeCreateObject(data, size);
         res = STATUS_NOT_IMPLEMENTED;
         break;
     case OPENGL_ICD_CMD_UPDATE:
+        res = EscapeUpdateObject(data, size);
         res = STATUS_NOT_IMPLEMENTED;
         break;
     case OPENGL_ICD_CMD_FREE:
+        res = EscapeDeleteObject(data, size);
         res = STATUS_NOT_IMPLEMENTED;
         break;
     case OPENGL_ICD_CMD_TRANSFER:
@@ -3041,7 +3145,7 @@ NTSTATUS VioGpuAdapter::Escape(_In_ CONST DXGKARG_ESCAPE *pEscape)
         break;
     }
 
-    DbgPrint(TRACE_LEVEL_FATAL, ("<--- %s ret = 0x%x\n", __FUNCTION__, res));
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s ret = 0x%x\n", __FUNCTION__, res));
     return STATUS_SUCCESS;
 }
 
