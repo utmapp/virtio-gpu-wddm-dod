@@ -198,6 +198,7 @@ public:
     virtual VOID BlackOutScreen(CURRENT_BDD_MODE* pCurrentBddMod) = 0;
     virtual NTSTATUS SetPointerShape(_In_ CONST DXGKARG_SETPOINTERSHAPE* pSetPointerShape, _In_ CONST CURRENT_BDD_MODE* pModeCur) = 0;
     virtual NTSTATUS SetPointerPosition(_In_ CONST DXGKARG_SETPOINTERPOSITION* pSetPointerPosition, _In_ CONST CURRENT_BDD_MODE* pModeCur) = 0;
+    virtual NTSTATUS Escape(_In_ CONST DXGKARG_ESCAPE *pEscape) = 0;
     ULONG GetId(void) { return m_Id; }
     WIN_GPU_DEVICE_TYPE GetType(void) { return m_Type;}
     VioGpuDod* GetVioGpu(void) {return m_pVioGpuDod;}
@@ -245,6 +246,7 @@ public:
     VOID ResetDevice(VOID);
     NTSTATUS SetPointerShape(_In_ CONST DXGKARG_SETPOINTERSHAPE* pSetPointerShape, _In_ CONST CURRENT_BDD_MODE* pModeCur);
     NTSTATUS SetPointerPosition(_In_ CONST DXGKARG_SETPOINTERPOSITION* pSetPointerPosition, _In_ CONST CURRENT_BDD_MODE* pModeCur);
+    NTSTATUS Escape(_In_ CONST DXGKARG_ESCAPE *pEscape);
     NTSTATUS AcquireFrameBuffer(CURRENT_BDD_MODE* pCurrentBddMode);
     NTSTATUS ReleaseFrameBuffer(CURRENT_BDD_MODE* pCurrentBddMode);
 protected:
@@ -282,6 +284,7 @@ public:
     VOID ResetDevice(VOID);
     NTSTATUS SetPointerShape(_In_ CONST DXGKARG_SETPOINTERSHAPE* pSetPointerShape, _In_ CONST CURRENT_BDD_MODE* pModeCur);
     NTSTATUS SetPointerPosition(_In_ CONST DXGKARG_SETPOINTERPOSITION* pSetPointerPosition, _In_ CONST CURRENT_BDD_MODE* pModeCur);
+    NTSTATUS Escape(_In_ CONST DXGKARG_ESCAPE *pEscape);
     CPciResources* GetPciResources(void) { return &m_PciResources; }
     NTSTATUS AcquireFrameBuffer(CURRENT_BDD_MODE* pCurrentBddMode) { UNREFERENCED_PARAMETER(pCurrentBddMode);  return STATUS_SUCCESS; }
     NTSTATUS ReleaseFrameBuffer(CURRENT_BDD_MODE* pCurrentBddMode) { UNREFERENCED_PARAMETER(pCurrentBddMode);  return STATUS_SUCCESS; }
@@ -422,6 +425,8 @@ public:
     NTSTATUS UpdateActiveVidPnPresentPath(_In_ CONST DXGKARG_UPDATEACTIVEVIDPNPRESENTPATH* CONST pUpdateActiveVidPnPresentPath);
 
     NTSTATUS QueryVidPnHWCapability(_Inout_ DXGKARG_QUERYVIDPNHWCAPABILITY* pVidPnHWCaps);
+
+    NTSTATUS Escape(_In_ CONST DXGKARG_ESCAPE *pEscape);
 
     // Part of PnPStop (PnP instance only), returns current mode information (which will be passed to fallback instance by dxgkrnl)
     NTSTATUS StopDeviceAndReleasePostDisplayOwnership(_In_  D3DDDI_VIDEO_PRESENT_TARGET_ID TargetId,

@@ -561,6 +561,20 @@ NTSTATUS VioGpuDod::QueryVidPnHWCapability(_Inout_ DXGKARG_QUERYVIDPNHWCAPABILIT
     return STATUS_SUCCESS;
 }
 
+NTSTATUS VioGpuDod::Escape(_In_ CONST DXGKARG_ESCAPE *pEscape)
+{
+    PAGED_CODE();
+    NTSTATUS res;
+
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %s\n", __FUNCTION__));
+    VIOGPU_ASSERT_CHK(pEscape != NULL);
+
+    res = m_pHWDevice->Escape(pEscape);
+
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
+    return res;
+}
+
 
 // TODO: Need to also check pinned modes and the path parameters, not just topology
 NTSTATUS VioGpuDod::IsSupportedVidPn(_Inout_ DXGKARG_ISSUPPORTEDVIDPN* pIsSupportedVidPn)
@@ -2391,6 +2405,16 @@ NTSTATUS VgaAdapter::SetPointerPosition(_In_ CONST DXGKARG_SETPOINTERPOSITION* p
     return STATUS_SUCCESS;
 }
 
+NTSTATUS VgaAdapter::Escape(_In_ CONST DXGKARG_ESCAPE *pEscape)
+{
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %s\n", __FUNCTION__));
+
+    UNREFERENCED_PARAMETER(pEscape);
+
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
+    return STATUS_NOT_SUPPORTED;
+}
+
 VioGpuAdapter::VioGpuAdapter(_In_ VioGpuDod* pVioGpuDod) : IVioGpuAdapter(pVioGpuDod)
 {
     PAGED_CODE();
@@ -2978,6 +3002,27 @@ NTSTATUS VioGpuAdapter::SetPointerPosition(_In_ CONST DXGKARG_SETPOINTERPOSITION
     ret = m_CursorQueue.QueueCursor(vbuf);
     DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s vbuf = %p, ret = %d\n", __FUNCTION__, vbuf, ret));
     return STATUS_SUCCESS;
+}
+
+NTSTATUS VioGpuAdapter::Escape(_In_ CONST DXGKARG_ESCAPE *pEscape)
+{
+    PAGED_CODE();
+
+    NTSTATUS res;
+    UINT free;
+    VOID *cmd = NULL;
+    PGPU_VBUFFER vbuf = NULL;
+
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %\n", __FUNCTION__));
+
+    cmd = (VOID*)m_CtrlQueue.AllocCmd(&vbuf, pEscape->PrivateDriverDataSize);
+    memcpy(cmd, pEscape->pPrivateDriverData, pEscape->PrivateDriverDataSize);
+
+    free = m_CtrlQueue.QueueBuffer(vbuf);
+    res = free == (UINT)-ENOSPC ? STATUS_UNSUCCESSFUL : STATUS_SUCCESS;
+
+    DbgPrint(TRACE_LEVEL_FATAL, ("<--- %s ret = 0x%x %u\n", __FUNCTION__, res, free));
+    return res;
 }
 
 BOOLEAN VioGpuAdapter::GetDisplayInfo(void)
