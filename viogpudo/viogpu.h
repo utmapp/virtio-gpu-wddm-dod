@@ -60,6 +60,14 @@ enum virtio_gpu_formats {
     VIRTIO_GPU_FORMAT_R8G8B8X8_UNORM  = 134,
 };
 
+enum opengl_icd_cmd {
+    OPENGL_ICD_CMD_INVALID = 0,
+    OPENGL_ICD_CMD_TRANSFER = 1,
+    OPENGL_ICD_CMD_ALLOCATE,
+    OPENGL_ICD_CMD_UPDATE,
+    OPENGL_ICD_CMD_FREE,
+};
+
 #pragma pack(1)
 typedef struct virtio_gpu_rect {
     ULONG x;

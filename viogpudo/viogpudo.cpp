@@ -3009,10 +3009,37 @@ NTSTATUS VioGpuAdapter::Escape(_In_ CONST DXGKARG_ESCAPE *pEscape)
     PAGED_CODE();
 
     NTSTATUS res = STATUS_SUCCESS;
+    UINT32 *cmd_type = NULL;
+    UINT32 size;
+    VOID *data = NULL;
 
     DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %\n", __FUNCTION__));
 
-    m_CtrlQueue.SubmitCmd(pEscape->pPrivateDriverData, pEscape->PrivateDriverDataSize);
+    VIOGPU_ASSERT_CHK(pEscape != NULL);
+    VIOGPU_ASSERT_CHK(pEscape->PrivateDriverDataSize >= sizeof(UINT32));
+
+    cmd_type = reinterpret_cast<UINT32*>(pEscape->pPrivateDriverData);
+    data = cmd_type + 1;
+    size = pEscape->PrivateDriverDataSize - sizeof(UINT32);
+
+    switch (*cmd_type) {
+    case OPENGL_ICD_CMD_ALLOCATE:
+        res = STATUS_NOT_IMPLEMENTED;
+        break;
+    case OPENGL_ICD_CMD_UPDATE:
+        res = STATUS_NOT_IMPLEMENTED;
+        break;
+    case OPENGL_ICD_CMD_FREE:
+        res = STATUS_NOT_IMPLEMENTED;
+        break;
+    case OPENGL_ICD_CMD_TRANSFER:
+        m_CtrlQueue.SubmitCmd(data, size);
+        res = STATUS_SUCCESS;
+        break;
+    default:
+        res = STATUS_INVALID_TOKEN;
+        break;
+    }
 
     DbgPrint(TRACE_LEVEL_FATAL, ("<--- %s ret = 0x%x\n", __FUNCTION__, res));
     return STATUS_SUCCESS;
