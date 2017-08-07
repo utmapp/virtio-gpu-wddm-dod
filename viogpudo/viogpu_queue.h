@@ -150,6 +150,7 @@ public:
     void ResFlush(UINT res_id, UINT width, UINT height, UINT x, UINT y);
     void TransferToHost2D(UINT res_id, ULONG offset, UINT width, UINT height, UINT x, UINT y, PUINT fence_id);
     void AttachBacking(UINT res_id, PGPU_MEM_ENTRY ents, UINT nents);
+    void SubmitCmd(VOID *data, UINT32 size);
     BOOLEAN GetDisplayInfo(PGPU_VBUFFER buf, UINT id, PULONG xres, PULONG yres);
     BOOLEAN AskDisplayInfo(PGPU_VBUFFER* buf);
 };

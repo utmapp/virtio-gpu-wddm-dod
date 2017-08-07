@@ -3008,21 +3008,14 @@ NTSTATUS VioGpuAdapter::Escape(_In_ CONST DXGKARG_ESCAPE *pEscape)
 {
     PAGED_CODE();
 
-    NTSTATUS res;
-    UINT free;
-    VOID *cmd = NULL;
-    PGPU_VBUFFER vbuf = NULL;
+    NTSTATUS res = STATUS_SUCCESS;
 
     DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %\n", __FUNCTION__));
 
-    cmd = (VOID*)m_CtrlQueue.AllocCmd(&vbuf, pEscape->PrivateDriverDataSize);
-    memcpy(cmd, pEscape->pPrivateDriverData, pEscape->PrivateDriverDataSize);
+    m_CtrlQueue.SubmitCmd(pEscape->pPrivateDriverData, pEscape->PrivateDriverDataSize);
 
-    free = m_CtrlQueue.QueueBuffer(vbuf);
-    res = free == (UINT)-ENOSPC ? STATUS_UNSUCCESSFUL : STATUS_SUCCESS;
-
-    DbgPrint(TRACE_LEVEL_FATAL, ("<--- %s ret = 0x%x %u\n", __FUNCTION__, res, free));
-    return res;
+    DbgPrint(TRACE_LEVEL_FATAL, ("<--- %s ret = 0x%x\n", __FUNCTION__, res));
+    return STATUS_SUCCESS;
 }
 
 BOOLEAN VioGpuAdapter::GetDisplayInfo(void)

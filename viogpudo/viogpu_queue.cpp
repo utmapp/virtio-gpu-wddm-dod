@@ -453,6 +453,24 @@ void CtrlQueue::AttachBacking(UINT res_id, PGPU_MEM_ENTRY ents, UINT nents)
     DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
 }
 
+void CtrlQueue::SubmitCmd(VOID *data, UINT32 size)
+{
+    PAGED_CODE();
+
+    VOID *cmd = NULL;
+    PGPU_VBUFFER vbuf = NULL;
+
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %s\n", __FUNCTION__));
+
+    cmd = (VOID*)AllocCmd(&vbuf, size);
+    memcpy(cmd, data, size);
+
+//FIXME add fence 
+    QueueBuffer(vbuf);
+
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
+}
+
 
 VioGpuBuf::VioGpuBuf()
 {
