@@ -133,16 +133,19 @@
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <OutDir>objchk_win10_x86\i386\</OutDir>
     <IntDir>objchk_win10_x86\i386\</IntDir>
+    <LibraryPath>$(SolutionDir)VirtIO\objchk_win10_x86\i386\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Win8 Debug|Win32'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <OutDir>objchk_win8_x86\i386\</OutDir>
     <IntDir>objchk_win8_x86\i386\</IntDir>
+    <LibraryPath>$(SolutionDir)VirtIO\objchk_win8_x86\i386\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Win10 Release|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <OutDir>objfre_win10_amd64\amd64\</OutDir>
     <IntDir>objfre_win10_amd64\amd64\</IntDir>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Win8 Release|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
@@ -154,11 +157,13 @@
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <OutDir>objchk_win10_x86\amd64\</OutDir>
     <IntDir>objchk_win10_x86\amd64\</IntDir>
+    <LibraryPath>"$(SolutionDir)VirtIO\objchk_win10_amd64\amd64\";$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Win8 Debug|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <OutDir>objchk_win8_x86\amd64\</OutDir>
     <IntDir>objchk_win8_x86\amd64\</IntDir>
+    <LibraryPath>$(SolutionDir)VirtIO\objchk_win8_amd64\amd64\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Win8 Release|Win32'">
     <Link>
@@ -366,6 +371,11 @@
   </ItemGroup>
   <ItemGroup>
     <FilesToPackage Include="$(TargetPath)" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\VirtIO\VirtioLib.vcxproj">
+      <Project>{01d87c47-437a-4a16-8fd9-33fa5c99339e}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
