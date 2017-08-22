@@ -204,6 +204,7 @@ UINT CtrlQueue::QueueBuffer(PGPU_VBUFFER buf)
 
     if (buf->size > PAGE_SIZE) {
         DbgPrint(TRACE_LEVEL_ERROR, ("<--> %s size is too big %d\n", __FUNCTION__, buf->size));
+        ReleaseBuffer(buf);
         return 0;
     }
 
@@ -227,6 +228,7 @@ UINT CtrlQueue::QueueBuffer(PGPU_VBUFFER buf)
                 sgleft--;
                 if (sgleft == 0) {
                     DbgPrint(TRACE_LEVEL_ERROR, ("<--> %s no more sgelenamt spots left %d %d\n", __FUNCTION__, outcnt));
+                    ReleaseBuffer(buf);
                     return 0;
                 }
             }
@@ -235,6 +237,7 @@ UINT CtrlQueue::QueueBuffer(PGPU_VBUFFER buf)
 
     if (buf->resp_size > PAGE_SIZE) {
         DbgPrint(TRACE_LEVEL_ERROR, ("<--> %s resp_size is too big %d\n", __FUNCTION__, buf->resp_size));
+        ReleaseBuffer(buf);
         return 0;
     }
 
