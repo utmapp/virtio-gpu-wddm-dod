@@ -3444,6 +3444,7 @@ VOID VioGpuAdapter::DpcRoutine(_In_ PDXGKRNL_INTERFACE pDxgkInterface)
     PGPU_VBUFFER pvbuf = NULL;
     UINT len = 0;
     ULONG reason;
+
     while ((reason = InterlockedExchange((PLONG)&m_PendingWorks, 0)) !=0 )
     {
         if ((reason & ISR_REASON_DISPLAY)) {
@@ -3453,13 +3454,22 @@ VOID VioGpuAdapter::DpcRoutine(_In_ PDXGKRNL_INTERFACE pDxgkInterface)
                 PGPU_CTRL_HDR pcmd = (PGPU_CTRL_HDR)pvbuf->buf;
                 PGPU_CTRL_HDR resp = (PGPU_CTRL_HDR)pvbuf->resp_buf;
                 PKEVENT evnt = pvbuf->event;
+
+
                 if (evnt == NULL)
                 {
                     if (resp->type != VIRTIO_GPU_RESP_OK_NODATA)
                     {
                         DbgPrint(TRACE_LEVEL_ERROR, ("<--- %s type = %x flags = %x fence_id = %x ctx_id = %x cmd_type = %x\n", __FUNCTION__, resp->type, resp->flags, resp->fence_id, resp->ctx_id, pcmd->type));
                     }
-                    m_CtrlQueue.ReleaseBuffer(pvbuf);
+
+                    if (pvbuf->size > MAX_INLINE_CMD_SIZE) {
+                        m_CtrlQueue.ReleaseCmdBuffer(pvbuf);
+                    }
+                    else {
+                        m_CtrlQueue.ReleaseBuffer(pvbuf);
+                    }
+
                     continue;
                 }
                 switch (pcmd->type)

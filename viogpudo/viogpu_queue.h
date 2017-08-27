@@ -137,6 +137,9 @@ protected:
 class CtrlQueue : public VioGpuQueue
 {
 public:
+    CtrlQueue();
+    ~CtrlQueue();
+
     PVOID AllocCmd(PGPU_VBUFFER* buf, int sz);
     PVOID AllocCmdResp(PGPU_VBUFFER* buf, int cmd_sz, PVOID resp_buf, int resp_sz);
 
@@ -151,8 +154,14 @@ public:
     void TransferToHost2D(UINT res_id, ULONG offset, UINT width, UINT height, UINT x, UINT y, PUINT fence_id);
     void AttachBacking(UINT res_id, PGPU_MEM_ENTRY ents, UINT nents);
     void SubmitCmd(VOID *data, UINT32 size);
+    void ReleaseCmdBuffer(PGPU_VBUFFER vbuf);
     BOOLEAN GetDisplayInfo(PGPU_VBUFFER buf, UINT id, PULONG xres, PULONG yres);
     BOOLEAN AskDisplayInfo(PGPU_VBUFFER* buf);
+protected:
+    LIST_ENTRY m_3dCmdBuf;
+    KSPIN_LOCK m_cmdBufSpinLock;
+
+    PGPU_VBUFFER CreateCmdBuffer(CONST VOID *data, UINT32 size);
 };
 
 class CrsrQueue : public VioGpuQueue

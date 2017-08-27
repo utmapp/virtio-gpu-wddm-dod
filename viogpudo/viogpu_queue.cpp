@@ -83,6 +83,28 @@ UINT VioGpuQueue::QueryAllocation()
     return NumEntries;
 }
 
+CtrlQueue::CtrlQueue() : VioGpuQueue()
+{
+    KeInitializeSpinLock(&m_cmdBufSpinLock);
+    InitializeListHead(&m_3dCmdBuf);
+
+    DbgPrint(TRACE_LEVEL_ERROR, ("Creating list %p %p\n", m_3dCmdBuf.Blink, m_3dCmdBuf.Flink));
+}
+
+CtrlQueue::~CtrlQueue()
+{
+    while(!IsListEmpty(&m_3dCmdBuf))
+    {
+        LIST_ENTRY* pListItem = ExInterlockedRemoveHeadList(&m_3dCmdBuf, &m_cmdBufSpinLock);
+        if (pListItem)
+        {
+            PGPU_VBUFFER pvbuf = CONTAINING_RECORD(pListItem, GPU_VBUFFER, list_entry);
+            ASSERT(pvbuf);
+            delete [] reinterpret_cast<PBYTE>(pvbuf);
+        }
+    }
+}
+
 PVOID CtrlQueue::AllocCmd(PGPU_VBUFFER* buf, int sz)
 {
     PAGED_CODE();
@@ -192,6 +214,7 @@ BOOLEAN CtrlQueue::AskDisplayInfo(PGPU_VBUFFER* buf)
 
 UINT CtrlQueue::QueueBuffer(PGPU_VBUFFER buf)
 {
+
     PAGED_CODE();
 
     DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %s\n", __FUNCTION__));
@@ -465,15 +488,112 @@ void CtrlQueue::SubmitCmd(VOID *data, UINT32 size)
 
     DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %s\n", __FUNCTION__));
 
-    cmd = (VOID*)AllocCmd(&vbuf, size);
-    memcpy(cmd, data, size);
+    if (size > MAX_INLINE_CMD_SIZE) {
+        KIRQL SavedIrql;
+        UINT32 i, aligned_size, descriptors_count, bytes_left;
+        CHAR *data_ptr = NULL;
+        VirtIOBufferDescriptor *descriptors = NULL;
+        BOOLEAN sent = FALSE;
 
-//FIXME add fence 
-    QueueBuffer(vbuf);
+        vbuf = CreateCmdBuffer(data, size);
+        ASSERT(vbuf);
+
+        do {
+            aligned_size = (size + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
+            descriptors_count = 1 + aligned_size / PAGE_SIZE;
+            descriptors = new(NonPagedPoolNx) VirtIOBufferDescriptor[descriptors_count];
+            ASSERT(descriptors);
+
+            bytes_left = size;
+            data_ptr = reinterpret_cast<CHAR*>(vbuf->buf);
+
+            for (i = 0; i < descriptors_count - 1; i++) {
+                if (!BuildSGElement(&descriptors[i], (PVOID)data_ptr, MIN(PAGE_SIZE, bytes_left))) {
+                    DbgPrint(TRACE_LEVEL_ERROR, ("Unable to create %dth descriptor.\n", i));
+                    break;
+                }
+
+                bytes_left -= MIN(PAGE_SIZE, bytes_left);
+                data_ptr += PAGE_SIZE;
+            }
+
+            if (!BuildSGElement(&descriptors[descriptors_count - 1], (PVOID)vbuf->resp_buf, vbuf->resp_size)) {
+                DbgPrint(TRACE_LEVEL_ERROR, ("Unable to create resp descriptor.\n"));
+                break;
+            }
+
+            Lock(&SavedIrql);
+            AddBuf(descriptors, descriptors_count - 1, 1, vbuf, NULL, 0);
+            Unlock(SavedIrql);
+            Kick();
+            sent = TRUE;
+        } while (0);
+
+        if (sent != TRUE)
+            ReleaseCmdBuffer(vbuf);
+        delete[] descriptors;
+    }
+    else {
+        cmd = (VOID*)AllocCmd(&vbuf, size);
+        memcpy(cmd, data, size);
+        QueueBuffer(vbuf);
+    }
 
     DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
 }
 
+PGPU_VBUFFER CtrlQueue::CreateCmdBuffer(CONST VOID *data, UINT32 size)
+{
+    PAGED_CODE();
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %s\n", __FUNCTION__));
+    ASSERT(size > MAX_INLINE_CMD_SIZE);
+
+    CONST UINT32 total_size = sizeof(GPU_VBUFFER) + size + sizeof(GPU_CTRL_HDR);
+    PGPU_VBUFFER vbuf = (PGPU_VBUFFER)new(NonPagedPoolNx)BYTE[total_size];
+    ASSERT(vbuf != NULL);
+
+    memset(vbuf, 0, sizeof(PGPU_VBUFFER) + size + sizeof(GPU_CTRL_HDR));
+
+    vbuf->buf = (CHAR *)((ULONG_PTR)vbuf + sizeof(*vbuf));
+    vbuf->size = size;
+    vbuf->resp_buf = (char*)((ULONG_PTR)vbuf->buf + size);
+    vbuf->resp_size = sizeof(GPU_CTRL_HDR);
+    vbuf->data_buf = NULL;
+    vbuf->data_size = 0;
+
+    memcpy(vbuf->buf, data, size);
+
+    ExInterlockedInsertTailList(&m_3dCmdBuf, &vbuf->list_entry, &m_cmdBufSpinLock);
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
+
+    return vbuf;
+}
+
+void CtrlQueue::ReleaseCmdBuffer(PGPU_VBUFFER pbuf)
+{
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %s\n", __FUNCTION__));
+
+    UNREFERENCED_PARAMETER(pbuf);
+    BOOLEAN released = FALSE;
+    PLIST_ENTRY entry = NULL;
+    PGPU_VBUFFER list_pbuf = NULL;
+
+    if (pbuf && !IsListEmpty(&m_3dCmdBuf))
+    {
+        entry = ExInterlockedRemoveHeadList(&m_3dCmdBuf, &m_cmdBufSpinLock);
+        list_pbuf = CONTAINING_RECORD(entry, GPU_VBUFFER, list_entry);
+        if (pbuf == list_pbuf) {
+            delete[] list_pbuf;
+            released = TRUE;
+        }
+        else {
+            ExInterlockedInsertHeadList(&m_3dCmdBuf, entry, &m_cmdBufSpinLock);
+        }
+    }
+
+    ASSERT(released == TRUE);
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
+}
 
 VioGpuBuf::VioGpuBuf()
 {
