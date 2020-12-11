@@ -1,7 +1,7 @@
 @echo off
 : Param1 - Win10 | Win8
 setlocal
-: Param2 - x86|x64
+: Param2 - x86|x64|arm64
 : Param3 - sys name
  
 if "%2"=="x64" set %%2=amd64
@@ -13,6 +13,7 @@ goto :printerr
 :checkarch
 if /i "%2"=="x86" goto :makeinstall
 if /i "%2"=="x64" goto :makeinstall
+if /i "%2"=="arm64" goto :makeinstall
 :printerr
 echo wrong parameters (1)%1 (2)%2 (3)%3
 pause
@@ -24,13 +25,22 @@ set INST_ARC=%2
 set SYS_NAME=%3
 
 if /i "%INST_ARC%"=="x64" goto :set_x64
+if /i "%INST_ARC%"=="arm64" goto :set_arm64
 
 set INST_EXT=i386
+set VC_ARG=x86
 goto :startcopy
 
 :set_x64
 set INST_ARC=amd64
 set INST_EXT=amd64
+set VC_ARG=amd64
+goto :startcopy
+
+:set_arm64
+set INST_ARC=arm64
+set INST_EXT=arm64
+set VC_ARG=amd64_arm64
 
 :startcopy
 set SYS_PATH_AND_NAME=objfre_%INST_OS%_%INST_ARC%\%INST_EXT%\%SYS_NAME%.sys
@@ -64,9 +74,11 @@ goto run_inf2cat
 setlocal
 if not exist %DVL_PATH_AND_NAME% goto do_the_job
 if /i "%2"=="x64" copy /Y %DVL_PATH_AND_NAME% ..\Install\%INST_OS%\%INST_ARC%\
+if /i "%2"=="arm64" copy /Y %DVL_PATH_AND_NAME% ..\Install\%INST_OS%\%INST_ARC%\
 :do_the_job
 if /i "%2"=="x86" set _OSMASK_=10_X86
 if /i "%2"=="x64" set _OSMASK_=10_X64,Server10_X64
+if /i "%2"=="arm64" set _OSMASK_=10_RS3_ARM64,Server10_ARM64
 goto run_inf2cat
 
 :error_inf2cat 
@@ -75,7 +87,7 @@ goto after_inf2cat
 
 :run_inf2cat
 setlocal
-call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %INST_ARC%
+call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" %VC_ARG%
 inf2cat /driver:..\Install\%INST_OS%\%INST_ARC% /os:%_OSMASK_%
 endlocal
 
