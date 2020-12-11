@@ -98,7 +98,11 @@ NTSTATUS VioGpuDod::StartDevice(_In_  DXGK_START_INFO*   pDxgkStartInfo,
     }
     else
     {
+#ifdef VIOGPU_X86
         m_pHWDevice = new(NonPagedPoolNx) VgaAdapter(this);
+#else
+        return STATUS_NOT_IMPLEMENTED;
+#endif // VIOGPU_X86
     }
 
     if (!m_pHWDevice)
@@ -1918,6 +1922,8 @@ D3DDDI_VIDEO_PRESENT_SOURCE_ID VioGpuDod::FindSourceForTarget(D3DDDI_VIDEO_PRESE
 
 #pragma code_seg(pop) // End Non-Paged Code
 
+#ifdef VIOGPU_X86
+
 VgaAdapter::VgaAdapter(_In_ VioGpuDod* pVioGpuDod) : IVioGpuAdapter(pVioGpuDod)
 {
     m_ModeInfo = NULL;
@@ -2414,6 +2420,8 @@ NTSTATUS VgaAdapter::Escape(_In_ CONST DXGKARG_ESCAPE *pEscape)
     DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
     return STATUS_NOT_SUPPORTED;
 }
+
+#endif // VIOGPU_X86
 
 VioGpuAdapter::VioGpuAdapter(_In_ VioGpuDod* pVioGpuDod) : IVioGpuAdapter(pVioGpuDod)
 {

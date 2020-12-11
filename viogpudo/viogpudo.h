@@ -2,7 +2,6 @@
 
 #include "helper.h"
 
-
 #pragma pack(push)
 #pragma pack(1)
 
@@ -12,6 +11,13 @@ typedef struct
     UINT HardwareInit : 1; // ( 1) 1 after StartDevice and 0 after StopDevice
     UINT Unused : 30;
 } DRIVER_STATUS_FLAG;
+
+#pragma pack(pop)
+
+#ifdef VIOGPU_X86
+
+#pragma pack(push)
+#pragma pack(1)
 
 
 typedef struct
@@ -98,16 +104,6 @@ typedef struct _X86BIOS_REGISTERS	// invented names
     USHORT SegEs;
 } X86BIOS_REGISTERS, *PX86BIOS_REGISTERS;
 
-/*  Undocumented imports from the HAL  */
-
-typedef enum {
-    GPU_DEVICE,
-    VGA_DEVICE,
-    INVALID_DEVICE,
-}WIN_GPU_DEVICE_TYPE;
-
-
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -123,6 +119,16 @@ NTHALAPI NTSTATUS x86BiosWriteMemory (USHORT, USHORT, PVOID, ULONG);
 #ifdef __cplusplus
 }
 #endif
+
+#endif // VIOGPU_X86
+
+/*  Undocumented imports from the HAL  */
+
+typedef enum {
+    GPU_DEVICE,
+    VGA_DEVICE,
+    INVALID_DEVICE,
+}WIN_GPU_DEVICE_TYPE;
 
 // Represents the current mode, may not always be set (i.e. frame buffer mapped) if representing the mode passed in on single mode setups.
 typedef struct _CURRENT_BDD_MODE
@@ -217,6 +223,8 @@ protected:
     WIN_GPU_DEVICE_TYPE m_Type;
 };
 
+#ifdef VIOGPU_X86
+
 class VgaAdapter:
     public IVioGpuAdapter
 {
@@ -254,6 +262,8 @@ protected:
 private:
     void SetVideoModeInfo(UINT Idx, PVBE_MODEINFO pModeInfo);
 };
+
+#endif // VIOGPU_X86
 
 class VioGpuAdapter :
     public IVioGpuAdapter

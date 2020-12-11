@@ -118,3 +118,7 @@ void DebugPrintFuncKdPrint(const char *format, ...);
 #else
 #define VIOGPU_ASSERT_CHK(exp) {}
 #endif
+
+#if defined(_M_IX86) || defined(_M_X64)
+#define VIOGPU_X86 1
+#endif
