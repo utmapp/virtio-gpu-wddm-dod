@@ -1,6 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Win10 Debug|ARM64">
+      <Configuration>Win10 Debug</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Win10 Debug|Win32">
       <Configuration>Win10 Debug</Configuration>
       <Platform>Win32</Platform>
@@ -8,6 +12,10 @@
     <ProjectConfiguration Include="Win10 Debug|x64">
       <Configuration>Win10 Debug</Configuration>
       <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Win10 Release|ARM64">
+      <Configuration>Win10 Release</Configuration>
+      <Platform>ARM64</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Win10 Release|Win32">
       <Configuration>Win10 Release</Configuration>
@@ -17,6 +25,10 @@
       <Configuration>Win10 Release</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="Win8 Debug|ARM64">
+      <Configuration>Win8 Debug</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Win8 Debug|Win32">
       <Configuration>Win8 Debug</Configuration>
       <Platform>Win32</Platform>
@@ -24,6 +36,10 @@
     <ProjectConfiguration Include="Win8 Debug|x64">
       <Configuration>Win8 Debug</Configuration>
       <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Win8 Release|ARM64">
+      <Configuration>Win8 Release</Configuration>
+      <Platform>ARM64</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Win8 Release|Win32">
       <Configuration>Win8 Release</Configuration>
@@ -85,7 +101,23 @@
     <DriverType>WDM</DriverType>
     <ALLOW_DATE_TIME>1</ALLOW_DATE_TIME>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Win10 Release|ARM64'" Label="Configuration">
+    <TargetVersion>Windows10</TargetVersion>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
+    <ConfigurationType>Driver</ConfigurationType>
+    <DriverType>WDM</DriverType>
+    <ALLOW_DATE_TIME>1</ALLOW_DATE_TIME>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Win8 Release|x64'" Label="Configuration">
+    <TargetVersion>Windows10</TargetVersion>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
+    <ConfigurationType>Driver</ConfigurationType>
+    <DriverType>WDM</DriverType>
+    <ALLOW_DATE_TIME>1</ALLOW_DATE_TIME>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Win8 Release|ARM64'" Label="Configuration">
     <TargetVersion>Windows10</TargetVersion>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
@@ -101,7 +133,23 @@
     <DriverType>WDM</DriverType>
     <ALLOW_DATE_TIME>1</ALLOW_DATE_TIME>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Win10 Debug|ARM64'" Label="Configuration">
+    <TargetVersion>Windows10</TargetVersion>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
+    <ConfigurationType>Driver</ConfigurationType>
+    <DriverType>WDM</DriverType>
+    <ALLOW_DATE_TIME>1</ALLOW_DATE_TIME>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Win8 Debug|x64'" Label="Configuration">
+    <TargetVersion>Windows10</TargetVersion>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
+    <ConfigurationType>Driver</ConfigurationType>
+    <DriverType>WDM</DriverType>
+    <ALLOW_DATE_TIME>1</ALLOW_DATE_TIME>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Win8 Debug|ARM64'" Label="Configuration">
     <TargetVersion>Windows10</TargetVersion>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
@@ -147,11 +195,21 @@
     <IntDir>objfre_win10_amd64\amd64\</IntDir>
     <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Win10 Release|ARM64'">
+    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
+    <OutDir>objfre_win10_arm64\arm64\</OutDir>
+    <IntDir>objfre_win10_arm64\arm64\</IntDir>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Win8 Release|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <OutDir>objfre_win8_amd64\amd64\</OutDir>
     <IntDir>objfre_win8_amd64\amd64\</IntDir>
     <Inf2CatWindowsVersionList>8_$(DDKPlatform)</Inf2CatWindowsVersionList>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Win8 Release|ARM64'">
+    <Inf2CatWindowsVersionList>8_$(DDKPlatform)</Inf2CatWindowsVersionList>
+    <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Win10 Debug|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
@@ -159,11 +217,21 @@
     <IntDir>objchk_win10_x86\amd64\</IntDir>
     <LibraryPath>"$(SolutionDir)VirtIO\objchk_win10_amd64\amd64\";$(LibraryPath)</LibraryPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Win10 Debug|ARM64'">
+    <LibraryPath>"$(SolutionDir)VirtIO\objchk_win10_amd64\amd64\";$(LibraryPath)</LibraryPath>
+    <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
+    <OutDir>objchk_win10_arm64\arm64\</OutDir>
+    <IntDir>objchk_win10_arm64\arm64\</IntDir>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Win8 Debug|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <OutDir>objchk_win8_x86\amd64\</OutDir>
     <IntDir>objchk_win8_x86\amd64\</IntDir>
     <LibraryPath>$(SolutionDir)VirtIO\objchk_win8_amd64\amd64\;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Win8 Debug|ARM64'">
+    <LibraryPath>$(SolutionDir)VirtIO\objchk_win8_amd64\amd64\;$(LibraryPath)</LibraryPath>
+    <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Win8 Release|Win32'">
     <Link>
@@ -273,6 +341,18 @@
       <Command>        packOne.bat $(TargetOS) $(TargetArch) viogpudo</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Win8 Debug|ARM64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories);$(DDK_INC_PATH);$(SDK_INC_PATH);..\VirtIO;</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_WIN64;_AMD64_;AMD64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(DDK_LIB_PATH)\displib.lib;virtiolib.lib</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>        packOne.bat $(TargetOS) $(TargetArch) viogpudo</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Win10 Release|x64'">
     <ClCompile>
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories);$(DDK_INC_PATH);$(SDK_INC_PATH);..\VirtIO;</AdditionalIncludeDirectories>
@@ -286,10 +366,33 @@
       <Command>        packOne.bat Win10 x64 viogpudo</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Win10 Release|ARM64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories);$(DDK_INC_PATH);$(SDK_INC_PATH);..\VirtIO;</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(DDK_LIB_PATH)\displib.lib;virtiolib.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\VirtIO\objfre_win10_arm64\arm64\</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>        packOne.bat Win10 arm64 viogpudo</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Win10 Debug|x64'">
     <ClCompile>
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories);$(DDK_INC_PATH);$(SDK_INC_PATH);..\VirtIO;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_WIN64;_AMD64_;AMD64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(DDK_LIB_PATH)\displib.lib;virtiolib.lib</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>        packOne.bat $(TargetOS) $(TargetArch) viogpudo</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Win10 Debug|ARM64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories);$(DDK_INC_PATH);$(SDK_INC_PATH);..\VirtIO;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(DDK_LIB_PATH)\displib.lib;virtiolib.lib</AdditionalDependencies>
@@ -308,6 +411,26 @@
     </Inf>
     <Inf>
       <KmdfVersionNumber />
+    </Inf>
+    <Link>
+      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(DDK_LIB_PATH)\displib.lib;virtiolib.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\VirtIO\objfre_win8_amd64\amd64\</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>        packOne.bat Win8 x64 viogpudo</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Win8 Release|ARM64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories);$(DDK_INC_PATH);$(SDK_INC_PATH);..\VirtIO;</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_WIN64;_AMD64_;AMD64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Inf>
+      <SpecifyDriverVerDirectiveDate>true</SpecifyDriverVerDirectiveDate>
+    </Inf>
+    <Inf>
+      <KmdfVersionNumber>
+      </KmdfVersionNumber>
     </Inf>
     <Link>
       <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(DDK_LIB_PATH)\displib.lib;virtiolib.lib</AdditionalDependencies>
@@ -357,16 +480,28 @@
       <EnableVerbose Condition="'$(Configuration)|$(Platform)'=='Win8 Debug|Win32'">false</EnableVerbose>
       <KmdfVersionNumber Condition="'$(Configuration)|$(Platform)'=='Win8 Release|x64'">
       </KmdfVersionNumber>
+      <KmdfVersionNumber Condition="'$(Configuration)|$(Platform)'=='Win8 Release|ARM64'">
+      </KmdfVersionNumber>
       <EnableVerbose Condition="'$(Configuration)|$(Platform)'=='Win8 Release|x64'">false</EnableVerbose>
+      <EnableVerbose Condition="'$(Configuration)|$(Platform)'=='Win8 Release|ARM64'">false</EnableVerbose>
       <KmdfVersionNumber Condition="'$(Configuration)|$(Platform)'=='Win10 Debug|x64'">
       </KmdfVersionNumber>
+      <KmdfVersionNumber Condition="'$(Configuration)|$(Platform)'=='Win10 Debug|ARM64'">
+      </KmdfVersionNumber>
       <EnableVerbose Condition="'$(Configuration)|$(Platform)'=='Win10 Debug|x64'">false</EnableVerbose>
+      <EnableVerbose Condition="'$(Configuration)|$(Platform)'=='Win10 Debug|ARM64'">false</EnableVerbose>
       <KmdfVersionNumber Condition="'$(Configuration)|$(Platform)'=='Win10 Release|x64'">
       </KmdfVersionNumber>
+      <KmdfVersionNumber Condition="'$(Configuration)|$(Platform)'=='Win10 Release|ARM64'">
+      </KmdfVersionNumber>
       <EnableVerbose Condition="'$(Configuration)|$(Platform)'=='Win10 Release|x64'">false</EnableVerbose>
+      <EnableVerbose Condition="'$(Configuration)|$(Platform)'=='Win10 Release|ARM64'">false</EnableVerbose>
       <KmdfVersionNumber Condition="'$(Configuration)|$(Platform)'=='Win8 Debug|x64'">
       </KmdfVersionNumber>
+      <KmdfVersionNumber Condition="'$(Configuration)|$(Platform)'=='Win8 Debug|ARM64'">
+      </KmdfVersionNumber>
       <EnableVerbose Condition="'$(Configuration)|$(Platform)'=='Win8 Debug|x64'">false</EnableVerbose>
+      <EnableVerbose Condition="'$(Configuration)|$(Platform)'=='Win8 Debug|ARM64'">false</EnableVerbose>
     </Inf>
   </ItemGroup>
   <ItemGroup>
