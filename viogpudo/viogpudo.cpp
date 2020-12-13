@@ -2653,16 +2653,6 @@ NTSTATUS VioGpuAdapter::HWInit(PCM_RESOURCE_LIST pResList, DXGK_DISPLAY_INFORMAT
             break;
         }
 
-//        if (!m_FrameSegment.Init(2048 * 2048 * 4, NULL))
-        PHYSICAL_ADDRESS pa = m_PciResources.GetPciBar(0)->GetPA();
-        UINT sz = (UINT)m_PciResources.GetPciBar(0)->GetSize();
-        if (!m_FrameSegment.Init(sz, &pa))
-        {
-            DbgPrint(TRACE_LEVEL_FATAL, ("%s failed to allocate FB memory segment\n", __FUNCTION__));
-            status = STATUS_INSUFFICIENT_RESOURCES;
-            break;
-        }
-
         if (!m_CursorSegment.Init(POINTER_SIZE * POINTER_SIZE * 4, NULL))
         {
             DbgPrint(TRACE_LEVEL_FATAL, ("%s failed to allocate Cursor memory segment\n", __FUNCTION__));
@@ -3557,6 +3547,14 @@ NTSTATUS VioGpuAdapter::CreateFrameBufferObj(PVIDEO_MODE_INFORMATION pModeInfo, 
     size = pModeInfo->ScreenStride * pModeInfo->VisScreenHeight;
     format = ColorFormat(pCurrentBddMode->DispInfo.ColorFormat);
     DbgPrint(TRACE_LEVEL_INFORMATION, ("---> %s - (%d -> %d)\n", __FUNCTION__, pCurrentBddMode->DispInfo.ColorFormat, format));
+
+    m_FrameSegment.Close(); // free existing memory
+    if (!m_FrameSegment.Init(size, NULL))
+    {
+        DbgPrint(TRACE_LEVEL_FATAL, ("%s failed to allocate FB memory segment\n", __FUNCTION__));
+        return STATUS_INSUFFICIENT_RESOURCES;
+    }
+
     resid = m_Idr.GetId();
     m_CtrlQueue.CreateResource(resid, format, pModeInfo->VisScreenWidth, pModeInfo->VisScreenHeight);
     obj = new(NonPagedPoolNx) VioGpuObj();
