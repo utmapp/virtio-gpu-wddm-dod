@@ -878,10 +878,11 @@ void VioGpuMemSegment::Close(void)
     if (m_bSystemMemory) {
         delete[] m_pVAddr;
     }
-    else {
+    else if (m_pVAddr) { // can be NULL if Close() already called
         UnmapFrameBuffer(m_pVAddr, (ULONG)m_Size);
     }
     m_pVAddr = NULL;
+    m_Size = 0;
 
     delete[] reinterpret_cast<PBYTE>(m_pSGList);
     m_pSGList = NULL;
