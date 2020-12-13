@@ -924,7 +924,7 @@ BOOLEAN VioGpuObj::Init(_In_ UINT size, VioGpuMemSegment *pSegment)
     size = pages * PAGE_SIZE;
     if (size > pSegment->GetSize())
     {
-        DbgPrint(TRACE_LEVEL_FATAL, ("<--- %s segment size too small = %d (%d)\n", __FUNCTION__, m_pSegment->GetSize(), size));
+        DbgPrint(TRACE_LEVEL_FATAL, ("<--- %s segment size too small = %d (%d)\n", __FUNCTION__, pSegment->GetSize(), size));
         return FALSE;
     }
     m_pSegment = pSegment;
