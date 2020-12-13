@@ -51,7 +51,7 @@ DriverEntry(
     // Initialize DDI function pointers and dxgkrnl
     KMDDOD_INITIALIZATION_DATA InitialData = {0};
 
-    InitialData.Version = DXGKDDI_INTERFACE_VERSION;
+    InitialData.Version = DXGKDDI_INTERFACE_VERSION_WIN8;
 
     InitialData.DxgkDdiAddDevice                    = VioGpuDodAddDevice;
     InitialData.DxgkDdiStartDevice                  = VioGpuDodStartDevice;

@@ -394,9 +394,6 @@ NTSTATUS VioGpuDod::QueryAdapterInfo(_In_ CONST DXGKARG_QUERYADAPTERINFO* pQuery
             DbgPrint(TRACE_LEVEL_ERROR, ("InterruptMessageNumber = %d, WDDMVersion = %d\n", pDriverCaps->InterruptMessageNumber, pDriverCaps->WDDMVersion));
             RtlZeroMemory(pDriverCaps, pQueryAdapterInfo->OutputDataSize/*sizeof(DXGK_DRIVERCAPS)*/);
             pDriverCaps->WDDMVersion = DXGKDDI_WDDMv1_2;
-#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WDDM1_3)
-            pDriverCaps->WDDMVersion = DXGKDDI_WDDMv1_3;
-#endif
             pDriverCaps->HighestAcceptableAddress.QuadPart = (ULONG64)-1;
 
             if (m_pHWDevice->EnablePointer()) {
@@ -406,7 +403,7 @@ NTSTATUS VioGpuDod::QueryAdapterInfo(_In_ CONST DXGKARG_QUERYADAPTERINFO* pQuery
                 pDriverCaps->PointerCaps.Color = 1;
                 pDriverCaps->PointerCaps.MaskedColor = 0;
             }
-            pDriverCaps->SupportNonVGA = (m_pHWDevice->GetType() == VGA_DEVICE);
+            pDriverCaps->SupportNonVGA = TRUE;
             pDriverCaps->SupportSmoothRotation = TRUE;
             DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s 1\n", __FUNCTION__));
             return STATUS_SUCCESS;
