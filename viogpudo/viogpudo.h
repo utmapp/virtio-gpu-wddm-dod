@@ -9,7 +9,8 @@ typedef struct
 {
     UINT DriverStarted : 1; // ( 1) 1 after StartDevice and 0 after StopDevice
     UINT HardwareInit : 1; // ( 1) 1 after StartDevice and 0 after StopDevice
-    UINT Unused : 30;
+    UINT VirtIOInit : 1; // ( 1) 1 after VirtIoDeviceInit and 0 after StopDevice
+    UINT Unused : 29;
 } DRIVER_STATUS_FLAG;
 
 #pragma pack(pop)
@@ -379,6 +380,14 @@ public:
     void SetHardwareInit(BOOLEAN init)
     {
         m_Flags.HardwareInit = init;
+    }
+    BOOLEAN IsVirtIOInit() const
+    {
+        return m_Flags.VirtIOInit;
+    }
+    void SetVirtIOInit(BOOLEAN init)
+    {
+        m_Flags.VirtIOInit = init;
     }
 #pragma code_seg(pop)
 

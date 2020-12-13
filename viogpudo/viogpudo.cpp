@@ -2498,6 +2498,7 @@ NTSTATUS VioGpuAdapter::VioGpuAdapterInit(DXGK_DISPLAY_INFORMATION* pDispInfo)
         DbgPrint(TRACE_LEVEL_FATAL, ("Failed to initialize virtio device, error %x\n", status));
         return status;
     }
+    m_pVioGpuDod->SetVirtIOInit(TRUE);
 
     m_u64HostFeatures = virtio_get_features(&m_VioDev);
     do
@@ -2558,11 +2559,18 @@ void VioGpuAdapter::VioGpuAdapterClose()
     PAGED_CODE();
     DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %s\n", __FUNCTION__));
     m_pVioGpuDod->SetHardwareInit(FALSE);
-    virtio_device_reset(&m_VioDev);
-    virtio_delete_queues(&m_VioDev);
+    if (m_pVioGpuDod->IsVirtIOInit())
+    {
+        virtio_device_reset(&m_VioDev);
+        virtio_delete_queues(&m_VioDev);
+    }
     m_CtrlQueue.Close();
     m_CursorQueue.Close();
-    virtio_device_shutdown(&m_VioDev);
+    if (m_pVioGpuDod->IsVirtIOInit())
+    {
+        virtio_device_shutdown(&m_VioDev);
+    }
+    m_pVioGpuDod->SetVirtIOInit(FALSE);
     DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
 }
 
@@ -2622,8 +2630,9 @@ NTSTATUS VioGpuAdapter::HWInit(PCM_RESOURCE_LIST pResList, DXGK_DISPLAY_INFORMAT
             status = VirtIoDeviceInit();
             if (!NT_SUCCESS(status)) {
                 DbgPrint(TRACE_LEVEL_FATAL, ("Failed to initialize virtio device, error %x\n", status));
-                break;
+                return status; // cannot call virtio_add_status if we failed
             }
+            m_pVioGpuDod->SetVirtIOInit(TRUE);
             m_u64HostFeatures = virtio_get_features(&m_VioDev);
         }
         else
@@ -2652,18 +2661,21 @@ NTSTATUS VioGpuAdapter::HWInit(PCM_RESOURCE_LIST pResList, DXGK_DISPLAY_INFORMAT
         if (!m_FrameSegment.Init(sz, &pa))
         {
             DbgPrint(TRACE_LEVEL_FATAL, ("%s failed to allocate FB memory segment\n", __FUNCTION__));
+            status = STATUS_INSUFFICIENT_RESOURCES;
             break;
         }
 
         if (!m_CursorSegment.Init(POINTER_SIZE * POINTER_SIZE * 4, NULL))
         {
             DbgPrint(TRACE_LEVEL_FATAL, ("%s failed to allocate Cursor memory segment\n", __FUNCTION__));
+            status = STATUS_INSUFFICIENT_RESOURCES;
             break;
         }
 
         if (!m_ICDSegment.Init(MAX_ICD_MEMORY, NULL))
         {
             DbgPrint(TRACE_LEVEL_FATAL, ("%s failed to allocate ICD memory segment\n", __FUNCTION__));
+            status = STATUS_INSUFFICIENT_RESOURCES;
             break;
         }
 
@@ -2718,6 +2730,7 @@ NTSTATUS VioGpuAdapter::HWInit(PCM_RESOURCE_LIST pResList, DXGK_DISPLAY_INFORMAT
     else
     {
         virtio_add_status(&m_VioDev, VIRTIO_CONFIG_S_FAILED);
+        return status;
     }
 //FIXME!!
     status = PsCreateSystemThread(&threadHandle,
@@ -2760,13 +2773,16 @@ NTSTATUS VioGpuAdapter::HWClose(void)
     m_bStopWorkThread = TRUE;
     KeSetEvent(&m_ConfigUpdateEvent, IO_NO_INCREMENT, FALSE);
 
-    KeWaitForSingleObject(m_pWorkThread,
-        Executive,
-        KernelMode,
-        FALSE,
-        NULL);
+    if (m_pWorkThread != NULL) // NULL if HWInit failed
+    {
+        KeWaitForSingleObject(m_pWorkThread,
+            Executive,
+            KernelMode,
+            FALSE,
+            NULL);
 
-    ObDereferenceObject(m_pWorkThread);
+        ObDereferenceObject(m_pWorkThread);
+    }
 
     m_FrameSegment.Close();
     m_CursorSegment.Close();
