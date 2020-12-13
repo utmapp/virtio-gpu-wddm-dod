@@ -2463,6 +2463,7 @@ VioGpuAdapter::~VioGpuAdapter(void)
 NTSTATUS VioGpuAdapter::SetCurrentMode(ULONG Mode, CURRENT_BDD_MODE* pCurrentBddMode)
 {
     PAGED_CODE();
+    NTSTATUS status = STATUS_UNSUCCESSFUL;
     DbgPrint(TRACE_LEVEL_ERROR, ("---> %s - %d: Mode = %d\n", __FUNCTION__, m_Id, Mode));
     for (ULONG idx = 0; idx < GetModeCount(); idx++)
     {
@@ -2471,15 +2472,15 @@ NTSTATUS VioGpuAdapter::SetCurrentMode(ULONG Mode, CURRENT_BDD_MODE* pCurrentBdd
             DestroyFrameBufferObj();
             pCurrentBddMode->Flags.FrameBufferIsActive = FALSE;
             pCurrentBddMode->DispInfo.PhysicAddress.QuadPart = 0LL;
-            CreateFrameBufferObj(&m_ModeInfo[idx], pCurrentBddMode);
-            DbgPrint(TRACE_LEVEL_ERROR, ("%s device %d: setting current mode %d (%d x %d)\n",
+            status = CreateFrameBufferObj(&m_ModeInfo[idx], pCurrentBddMode);
+            DbgPrint(TRACE_LEVEL_ERROR, ("%s device %d: setting current mode %d (%d x %d), return: %x\n",
                 __FUNCTION__, m_Id, Mode, m_ModeInfo[idx].VisScreenWidth,
-                m_ModeInfo[idx].VisScreenHeight));
-            return STATUS_SUCCESS;
+                m_ModeInfo[idx].VisScreenHeight, status));
+            return status;
         }
     }
     DbgPrint(TRACE_LEVEL_ERROR, ("<--- %s failed\n", __FUNCTION__));
-    return STATUS_UNSUCCESSFUL;
+    return status;
 }
 
 NTSTATUS VioGpuAdapter::VioGpuAdapterInit(DXGK_DISPLAY_INFORMATION* pDispInfo)
@@ -3545,7 +3546,7 @@ UINT ColorFormat(UINT format)
     return VIRTIO_GPU_FORMAT_B8G8R8A8_UNORM;
 }
 
-void VioGpuAdapter::CreateFrameBufferObj(PVIDEO_MODE_INFORMATION pModeInfo, CURRENT_BDD_MODE* pCurrentBddMode)
+NTSTATUS VioGpuAdapter::CreateFrameBufferObj(PVIDEO_MODE_INFORMATION pModeInfo, CURRENT_BDD_MODE* pCurrentBddMode)
 {
     UINT resid, format, size;
     VioGpuObj* obj;
@@ -3563,7 +3564,7 @@ void VioGpuAdapter::CreateFrameBufferObj(PVIDEO_MODE_INFORMATION pModeInfo, CURR
     {
         DbgPrint(TRACE_LEVEL_FATAL, ("<--- %s Failed to init obj size = %d\n", __FUNCTION__, size));
         delete obj;
-        return;
+        return STATUS_UNSUCCESSFUL;
     }
 
     GpuObjectAttach(resid, obj);
@@ -3576,6 +3577,7 @@ void VioGpuAdapter::CreateFrameBufferObj(PVIDEO_MODE_INFORMATION pModeInfo, CURR
     pCurrentBddMode->FrameBuffer.Ptr = obj->GetVirtualAddress();
     pCurrentBddMode->Flags.FrameBufferIsActive = TRUE;
     DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
+    return STATUS_SUCCESS;
 }
 
 void VioGpuAdapter::DestroyFrameBufferObj(void)
