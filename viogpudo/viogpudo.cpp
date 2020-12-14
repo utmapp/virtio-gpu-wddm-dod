@@ -403,7 +403,7 @@ NTSTATUS VioGpuDod::QueryAdapterInfo(_In_ CONST DXGKARG_QUERYADAPTERINFO* pQuery
                 pDriverCaps->PointerCaps.Color = 1;
                 pDriverCaps->PointerCaps.MaskedColor = 0;
             }
-            pDriverCaps->SupportNonVGA = TRUE;
+            pDriverCaps->SupportNonVGA = (m_pHWDevice->GetType() == VGA_DEVICE);
             pDriverCaps->SupportSmoothRotation = TRUE;
             DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s 1\n", __FUNCTION__));
             return STATUS_SUCCESS;
