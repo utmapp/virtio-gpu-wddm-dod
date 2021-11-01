@@ -2920,7 +2920,7 @@ NTSTATUS VioGpuAdapter::ExecutePresentDisplayOnly(
                                         pModeCur->SrcModeWidth,
                                         pModeCur->SrcModeHeight));
 
-    m_CtrlQueue.TransferToHost2D(resid, offset, updrect.right - updrect.left, updrect.bottom - updrect.top, updrect.left, updrect.top, NULL);
+    m_CtrlQueue.TransferToHost2D(resid, offset, updrect.right - updrect.left, updrect.bottom - updrect.top, updrect.left, updrect.top, NULL, NULL);
     m_CtrlQueue.ResFlush(resid, updrect.right - updrect.left, updrect.bottom - updrect.top, updrect.left, updrect.top);
 
     return STATUS_SUCCESS;
@@ -3470,8 +3470,15 @@ VOID VioGpuAdapter::DpcRoutine(_In_ PDXGKRNL_INTERFACE pDxgkInterface)
                 PGPU_CTRL_HDR resp = (PGPU_CTRL_HDR)pvbuf->resp_buf;
                 PKEVENT evnt = pvbuf->event;
 
-
-                if (evnt == NULL)
+                if (evnt != NULL)
+                {
+                    KeSetEvent(evnt, IO_NO_INCREMENT, FALSE);
+                }
+                if (pcmd->type == VIRTIO_GPU_CMD_GET_DISPLAY_INFO)
+                {
+                    ASSERT(evnt);
+                }
+                else
                 {
                     if (resp->type != VIRTIO_GPU_RESP_OK_NODATA)
                     {
@@ -3484,20 +3491,6 @@ VOID VioGpuAdapter::DpcRoutine(_In_ PDXGKRNL_INTERFACE pDxgkInterface)
                     else {
                         m_CtrlQueue.ReleaseBuffer(pvbuf);
                     }
-
-                    continue;
-                }
-                switch (pcmd->type)
-                {
-                    case VIRTIO_GPU_CMD_GET_DISPLAY_INFO:
-                    {
-                        ASSERT(evnt);
-                        KeSetEvent(evnt, IO_NO_INCREMENT, FALSE);
-                    }
-                    break;
-                    default:
-                        DbgPrint(TRACE_LEVEL_ERROR, ("<--- %s Unknown cmd type 0x%x\n", __FUNCTION__, resp->type));
-                        break;
                 }
             };
         }
@@ -3570,7 +3563,7 @@ NTSTATUS VioGpuAdapter::CreateFrameBufferObj(PVIDEO_MODE_INFORMATION pModeInfo, 
 
     GpuObjectAttach(resid, obj);
     m_CtrlQueue.SetScanout(0/*FIXME m_Id*/, resid, pModeInfo->VisScreenWidth, pModeInfo->VisScreenHeight, 0, 0);
-    m_CtrlQueue.TransferToHost2D(resid, 0, pModeInfo->VisScreenWidth, pModeInfo->VisScreenHeight, 0, 0, NULL);
+    m_CtrlQueue.TransferToHost2D(resid, 0, pModeInfo->VisScreenWidth, pModeInfo->VisScreenHeight, 0, 0, NULL, NULL);
     m_CtrlQueue.ResFlush(resid, pModeInfo->VisScreenWidth, pModeInfo->VisScreenHeight, 0, 0);
     m_pFrameBuf = obj;
     ASSERT(pCurrentBddMode->DispInfo.PhysicAddress.QuadPart == 0L);
@@ -3601,6 +3594,8 @@ BOOLEAN VioGpuAdapter::CreateCursor(_In_ CONST DXGKARG_SETPOINTERSHAPE* pSetPoin
 {
     UINT resid, format, size;
     VioGpuObj* obj;
+    KEVENT event;
+    NTSTATUS status;
     PAGED_CODE();
     UNREFERENCED_PARAMETER(pCurrentBddMode);
     DbgPrint(TRACE_LEVEL_INFORMATION, ("---> %s - %d: (%d x %d - %d) (%d + %d)\n", __FUNCTION__, m_Id,
@@ -3692,7 +3687,16 @@ BOOLEAN VioGpuAdapter::CreateCursor(_In_ CONST DXGKARG_SETPOINTERSHAPE* pSetPoin
         return FALSE;
     }
 */
-    m_CtrlQueue.TransferToHost2D(resid, 0, pSetPointerShape->Width, pSetPointerShape->Height, 0, 0, NULL);
+    KeInitializeEvent(&event, NotificationEvent, FALSE);
+    m_CtrlQueue.TransferToHost2D(resid, 0, pSetPointerShape->Width, pSetPointerShape->Height, 0, 0, NULL, &event);
+    // wait for transfer to complete in order to prevent racing with cursor queue handler
+    status = KeWaitForSingleObject(&event,
+        Executive,
+        KernelMode,
+        FALSE,
+        NULL
+    );
+    ASSERT(NT_SUCCESS(status));
 
     DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
     return TRUE;
