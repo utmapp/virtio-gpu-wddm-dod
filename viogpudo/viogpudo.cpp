@@ -3262,13 +3262,37 @@ void VioGpuAdapter::SetCustomDisplay(_In_ USHORT xres, _In_ USHORT yres)
 
 GPU_DISP_MODE gpu_disp_modes[] =
 {
+    {1024, 640, VGPU_BPP},
+    {1024, 665, VGPU_BPP},
     {1024, 768, VGPU_BPP},
+    {1147, 745, VGPU_BPP},
+    {1152, 720, VGPU_BPP},
+    {1168, 755, VGPU_BPP},
     {1280, 800, VGPU_BPP},
     {1280, 1024, VGPU_BPP},
+    {1312, 848, VGPU_BPP},
+    {1344, 840, VGPU_BPP},
+    {1352, 878, VGPU_BPP},
     {1440, 900, VGPU_BPP},
+    {1496, 967, VGPU_BPP},
+    {1512, 982, VGPU_BPP},
     {1680, 1050, VGPU_BPP},
+    {1728, 1117, VGPU_BPP},
+    {1792, 1120, VGPU_BPP},
+    {1800, 1169, VGPU_BPP},
     {1920, 1080, VGPU_BPP},
+    {1920, 1200, VGPU_BPP},
+    {2048, 1280, VGPU_BPP},
+    {2056, 1329, VGPU_BPP},
+    {2240, 1260, VGPU_BPP},
+    {2560, 1440, VGPU_BPP},
     {2560, 1600, VGPU_BPP},
+    {2880, 1800, VGPU_BPP},
+    {3024, 1964, VGPU_BPP},
+    {3072, 1920, VGPU_BPP},
+    {3456, 2234, VGPU_BPP},
+    {4480, 2520, VGPU_BPP},
+    {5120, 2880, VGPU_BPP},
 };
 
 NTSTATUS VioGpuAdapter::GetModeList(DXGK_DISPLAY_INFORMATION* pDispInfo)
