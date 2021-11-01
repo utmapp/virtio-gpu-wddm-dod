@@ -3263,7 +3263,10 @@ void VioGpuAdapter::SetCustomDisplay(_In_ USHORT xres, _In_ USHORT yres)
 GPU_DISP_MODE gpu_disp_modes[] =
 {
     {1024, 768, VGPU_BPP},
+    {1280, 800, VGPU_BPP},
     {1280, 1024, VGPU_BPP},
+    {1440, 900, VGPU_BPP},
+    {1680, 1050, VGPU_BPP},
     {1920, 1080, VGPU_BPP},
     {2560, 1600, VGPU_BPP},
 };
