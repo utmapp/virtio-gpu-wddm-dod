@@ -3116,6 +3116,15 @@ NTSTATUS VioGpuAdapter::EscapeDeleteObject(VOID *data, UINT32 size)
     return STATUS_SUCCESS;
 }
 
+NTSTATUS VioGpuAdapter::SetCustomDisplay(QXLEscapeSetCustomDisplay* custom_display)
+{
+    PAGED_CODE();
+    USHORT xres = (USHORT)custom_display->xres;
+    USHORT yres = (USHORT)custom_display->yres;
+    SetCustomDisplay(xres, yres);
+    return UpdateChildStatus(TRUE);
+}
+
 
 NTSTATUS VioGpuAdapter::Escape(_In_ CONST DXGKARG_ESCAPE *pEscape)
 {
@@ -3151,6 +3160,14 @@ NTSTATUS VioGpuAdapter::Escape(_In_ CONST DXGKARG_ESCAPE *pEscape)
     case OPENGL_ICD_CMD_TRANSFER:
         m_CtrlQueue.SubmitCmd(data, size);
         res = STATUS_SUCCESS;
+        break;
+    case QXL_ESCAPE_SET_CUSTOM_DISPLAY:
+        if (size < sizeof(QXLEscapeSetCustomDisplay))
+        {
+            res = STATUS_INVALID_BUFFER_SIZE;
+            break;
+        }
+        res = SetCustomDisplay((QXLEscapeSetCustomDisplay *)data);
         break;
     default:
         res = STATUS_INVALID_TOKEN;

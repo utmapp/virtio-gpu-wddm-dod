@@ -1,6 +1,7 @@
 #pragma once
 
 #include "helper.h"
+#include "qxl_escape.h"
 
 #pragma pack(push)
 #pragma pack(1)
@@ -324,6 +325,7 @@ private:
     NTSTATUS EscapeCreateObject(VOID *data, UINT32 size);
     NTSTATUS EscapeUpdateObject(VOID *data, UINT32 size);
     NTSTATUS EscapeDeleteObject(VOID *data, UINT32 size);
+    NTSTATUS SetCustomDisplay(QXLEscapeSetCustomDisplay* custom_display);
 private:
     VirtIODevice m_VioDev;
     PUCHAR  m_IoBase;

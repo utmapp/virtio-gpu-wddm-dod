@@ -445,6 +445,7 @@
     <ClInclude Include="bitops.h" />
     <ClInclude Include="driver.h" />
     <ClInclude Include="helper.h" />
+    <ClInclude Include="qxl_escape.h" />
     <ClInclude Include="viogpu.h" />
     <ClInclude Include="viogpudo.h" />
     <ClInclude Include="resource.h" />
