@@ -430,7 +430,7 @@ NTSTATUS VioGpuDod::SetPointerPosition(_In_ CONST DXGKARG_SETPOINTERPOSITION* pS
     if (!(pSetPointerPosition->Flags.Visible))
     {
         DbgPrint(TRACE_LEVEL_INFORMATION, ("<--- %s Cursor is not visible\n", __FUNCTION__));
-        return STATUS_SUCCESS;
+        //return STATUS_SUCCESS;
     }
     return m_pHWDevice->SetPointerPosition(pSetPointerPosition, &m_CurrentModes[pSetPointerPosition->VidPnSourceId]);
 }
@@ -3005,8 +3005,8 @@ NTSTATUS VioGpuAdapter::SetPointerPosition(_In_ CONST DXGKARG_SETPOINTERPOSITION
             pSetPointerPosition->Flags.Visible,
             pSetPointerPosition->Flags.Value,
             pSetPointerPosition->VidPnSourceId));
-        crsr->pos.x = 0;
-        crsr->pos.y = 0;
+        crsr->pos.x = pModeCur->SrcModeWidth;
+        crsr->pos.y = pModeCur->SrcModeHeight;
     } else {
         DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %s (%d - %d) Visiable = %d Value = %x VidPnSourceId = %d\n",
             __FUNCTION__,
