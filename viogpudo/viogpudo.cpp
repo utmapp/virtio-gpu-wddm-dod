@@ -427,11 +427,6 @@ NTSTATUS VioGpuDod::SetPointerPosition(_In_ CONST DXGKARG_SETPOINTERPOSITION* pS
     VIOGPU_ASSERT(pSetPointerPosition != NULL);
     VIOGPU_ASSERT(pSetPointerPosition->VidPnSourceId < MAX_VIEWS);
 
-    if (!(pSetPointerPosition->Flags.Visible))
-    {
-        DbgPrint(TRACE_LEVEL_INFORMATION, ("<--- %s Cursor is not visible\n", __FUNCTION__));
-        return STATUS_SUCCESS;
-    }
     return m_pHWDevice->SetPointerPosition(pSetPointerPosition, &m_CurrentModes[pSetPointerPosition->VidPnSourceId]);
 }
 
@@ -2991,7 +2986,6 @@ NTSTATUS VioGpuAdapter::SetPointerPosition(_In_ CONST DXGKARG_SETPOINTERPOSITION
     RtlZeroMemory(crsr, sizeof(*crsr));
 
     crsr->hdr.type = VIRTIO_GPU_CMD_MOVE_CURSOR;
-    crsr->resource_id = m_pCursorBuf->GetId();
 
     if (!pSetPointerPosition->Flags.Visible ||
         (UINT)pSetPointerPosition->X > pModeCur->SrcModeWidth ||
@@ -3007,6 +3001,7 @@ NTSTATUS VioGpuAdapter::SetPointerPosition(_In_ CONST DXGKARG_SETPOINTERPOSITION
             pSetPointerPosition->VidPnSourceId));
         crsr->pos.x = 0;
         crsr->pos.y = 0;
+        crsr->resource_id = 0;
     } else {
         DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %s (%d - %d) Visiable = %d Value = %x VidPnSourceId = %d\n",
             __FUNCTION__,
@@ -3017,6 +3012,7 @@ NTSTATUS VioGpuAdapter::SetPointerPosition(_In_ CONST DXGKARG_SETPOINTERPOSITION
             pSetPointerPosition->VidPnSourceId));
         crsr->pos.x = pSetPointerPosition->X;
         crsr->pos.y = pSetPointerPosition->Y;
+        crsr->resource_id = m_pCursorBuf->GetId();
     }
     ret = m_CursorQueue.QueueCursor(vbuf);
     DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s vbuf = %p, ret = %d\n", __FUNCTION__, vbuf, ret));
