@@ -184,6 +184,11 @@ VioGpuDodStopDeviceAndReleasePostDisplayOwnership(
     _Out_ DXGK_DISPLAY_INFORMATION*      DisplayInfo);
 
 // Must be Non-Paged
+NTSTATUS VioGpuDodPnpIrp(
+    IN PDEVICE_OBJECT pDevObj,
+    IN PIRP pIrp
+);
+
 NTSTATUS
 APIENTRY
 VioGpuDodSystemDisplayEnable(

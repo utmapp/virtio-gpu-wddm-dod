@@ -327,6 +327,7 @@ bool CPciResources::Init(PDXGKRNL_INTERFACE pDxgkInterface, PCM_RESOURCE_LIST pR
     NTSTATUS Status = STATUS_SUCCESS;
     bool interrupt_found = false;
     int bar = -1;
+    bool bar_found = false;
 
     m_pDxgkInterface = pDxgkInterface;
 
@@ -372,6 +373,7 @@ bool CPciResources::Init(PDXGKRNL_INTERFACE pDxgkInterface, PCM_RESOURCE_LIST pR
                     break;
                  }
                  m_Bars[bar] = CPciBar(Start, len, true, bIoMapped);
+                 bar_found = true;
               }
               break;
               case CmResourceTypeInterrupt:
@@ -407,6 +409,7 @@ bool CPciResources::Init(PDXGKRNL_INTERFACE pDxgkInterface, PCM_RESOURCE_LIST pR
                     break;
                  }
                  m_Bars[bar] = CPciBar(Start, len, false, true);
+                 bar_found = true;
               }
               break;
               case CmResourceTypeDma:
@@ -424,7 +427,7 @@ bool CPciResources::Init(PDXGKRNL_INTERFACE pDxgkInterface, PCM_RESOURCE_LIST pR
            }
         }
     }
-    if (bar < 0 || !interrupt_found)
+    if (!bar_found || !interrupt_found)
     {
         DbgPrint(TRACE_LEVEL_ERROR, ("[%s] resource enumeration failed\n", __FUNCTION__));
         return false;

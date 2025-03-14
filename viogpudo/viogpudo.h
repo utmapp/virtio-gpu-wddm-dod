@@ -500,5 +500,7 @@ private:
     NTSTATUS IsVidPnSourceModeFieldsValid(CONST D3DKMDT_VIDPN_SOURCE_MODE* pSourceMode) const;
     NTSTATUS IsVidPnPathFieldsValid(CONST D3DKMDT_VIDPN_PRESENT_PATH* pPath) const;
     NTSTATUS RegisterHWInfo(_In_ ULONG Id);
+public:
+    DEVICE_OBJECT* GetPhysicalDevice() { return m_pPhysicalDevice; }
 };
 

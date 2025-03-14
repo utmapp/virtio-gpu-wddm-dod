@@ -11,7 +11,7 @@ int virtioDebugLevel;
 int bDebugPrint;
 
 tDebugPrintFunc VirtioDebugPrintProc;
-
+static PDRIVER_DISPATCH gOriginalPnpIrp;
 
 void InitializeDebugPrints(IN PDRIVER_OBJECT  DriverObject, IN PUNICODE_STRING RegistryPath)
 {
@@ -136,6 +136,10 @@ VioGpuDodAddDevice(
 
     *ppDeviceContext = pVioGpuDod;
 
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("Patching IRP_MJ_PNP to workaround double display bug\n"));
+    gOriginalPnpIrp = pPhysicalDeviceObject->DriverObject->MajorFunction[IRP_MJ_PNP];
+    pPhysicalDeviceObject->DriverObject->MajorFunction[IRP_MJ_PNP] = VioGpuDodPnpIrp;
+
     DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s ppDeviceContext = %p\n", __FUNCTION__, pVioGpuDod));
     return STATUS_SUCCESS;
 }
@@ -151,6 +155,11 @@ VioGpuDodRemoveDevice(
 
     if (pVioGpuDod)
     {
+        if (gOriginalPnpIrp)
+        {
+            DbgPrint(TRACE_LEVEL_VERBOSE, ("Removing IRP_MJ_PNP patch\n"));
+            pVioGpuDod->GetPhysicalDevice()->DriverObject->MajorFunction[IRP_MJ_PNP] = gOriginalPnpIrp;
+        }
         delete pVioGpuDod;
         pVioGpuDod = NULL;
     }
@@ -586,6 +595,246 @@ VioGpuDodQueryVidPnHWCapability(
 #pragma code_seg(push)
 #pragma code_seg()
 // BEGIN: Non-Paged Code
+
+typedef enum _SYSTEM_INFORMATION_CLASS {
+    SystemBootGraphicsInformation = 0x7e
+} SYSTEM_INFORMATION_CLASS;
+
+typedef enum _SYSTEM_PIXEL_FORMAT
+{
+    SystemPixelFormatUnknown,
+    SystemPixelFormatR8G8B8,
+    SystemPixelFormatR8G8B8X8,
+    SystemPixelFormatB8G8R8,
+    SystemPixelFormatB8G8R8X8
+} SYSTEM_PIXEL_FORMAT;
+
+typedef struct _SYSTEM_BOOT_GRAPHICS_INFORMATION
+{
+    LARGE_INTEGER FrameBuffer;
+    ULONG Width;
+    ULONG Height;
+    ULONG PixelStride;
+    ULONG Flags;
+    SYSTEM_PIXEL_FORMAT Format;
+    ULONG DisplayRotation;
+} SYSTEM_BOOT_GRAPHICS_INFORMATION, * PSYSTEM_BOOT_GRAPHICS_INFORMATION;
+
+extern "C" NTSTATUS WINAPI ZwQuerySystemInformation(
+    _In_      SYSTEM_INFORMATION_CLASS SystemInformationClass,
+    _Inout_   PVOID                    SystemInformation,
+    _In_      ULONG                    SystemInformationLength,
+    _Out_opt_ PULONG                   ReturnLength
+);
+
+#define IRP_MN_CUSTOM_INJECTED              0x80
+
+static NTSTATUS GetFramebufferAddress(
+    _Out_ ULONGLONG *pStartAddress,
+    _Out_ ULONGLONG *pEndAddress
+)
+{
+    NTSTATUS                         Status;
+    SYSTEM_BOOT_GRAPHICS_INFORMATION SystemBootGraphicsInfo;
+    ULONG                            PixelBytes;
+
+    Status = ZwQuerySystemInformation(
+        SystemBootGraphicsInformation,
+        &SystemBootGraphicsInfo,
+        sizeof(SystemBootGraphicsInfo),
+        NULL
+    );
+    if (!NT_SUCCESS(Status))
+    {
+        return Status;
+    }
+    if (SystemBootGraphicsInfo.Format == SystemPixelFormatB8G8R8)
+    {
+        PixelBytes = 3;
+    }
+    else if (SystemBootGraphicsInfo.Format == SystemPixelFormatB8G8R8X8)
+    {
+        PixelBytes = 4;
+    }
+    else
+    {
+        return STATUS_NOT_IMPLEMENTED;
+    }
+
+    *pStartAddress = SystemBootGraphicsInfo.FrameBuffer.QuadPart;
+    *pEndAddress = *pStartAddress + SystemBootGraphicsInfo.Height * SystemBootGraphicsInfo.PixelStride * PixelBytes;
+
+    return STATUS_SUCCESS;
+}
+
+static NTSTATUS
+VioGpuDodPnpIrpQueryResourcesCompletion(
+    IN PDEVICE_OBJECT   DeviceObject,
+    IN PIRP             Irp,
+    IN PVOID            Context
+)
+{
+    UNREFERENCED_PARAMETER(DeviceObject);
+    
+    if (Irp->PendingReturned == TRUE) {
+        // 
+        // You will set the event only if the lower driver has returned
+        // STATUS_PENDING earlier. This optimization removes the need to
+        // call KeSetEvent unnecessarily and improves performance because the
+        // system does not have to acquire an internal lock.  
+        // 
+        KeSetEvent((PKEVENT)Context, IO_NO_INCREMENT, FALSE);
+    }
+
+    // This is the only status you can return. 
+    return STATUS_MORE_PROCESSING_REQUIRED;
+}
+
+static NTSTATUS
+InjectFramebufferResource(
+    _Inout_ PCM_RESOURCE_LIST* ppResourceList
+)
+{
+    NTSTATUS status;
+    PCM_RESOURCE_LIST pResourceList;
+    SIZE_T resourceListSize;
+    PCM_FULL_RESOURCE_DESCRIPTOR list;
+    ULONGLONG framebufferStart, framebufferEnd;
+    BOOLEAN foundFramebuffer;
+
+    status = GetFramebufferAddress(&framebufferStart, &framebufferEnd);
+    if (!NT_SUCCESS(status))
+    {
+        return status;
+    }
+
+    pResourceList = *ppResourceList;
+    list = pResourceList->List;
+    foundFramebuffer = FALSE;
+
+    for (ULONG ix = 0; ix < pResourceList->Count; ++ix)
+    {
+        /* Process resources in CM_FULL_RESOURCE_DESCRIPTOR block number ix. */
+
+        for (ULONG jx = 0; jx < list->PartialResourceList.Count && !foundFramebuffer; ++jx)
+        {
+            PCM_PARTIAL_RESOURCE_DESCRIPTOR desc;
+            ULONGLONG memoryStart, memoryLength, memoryEnd;
+
+            desc = list->PartialResourceList.PartialDescriptors + jx;
+
+            if (desc->Type != CmResourceTypeMemory && desc->Type != CmResourceTypeMemoryLarge)
+            {
+                continue;
+            }
+            memoryLength = RtlCmDecodeMemIoResource(desc, &memoryStart);
+            memoryEnd = memoryStart + memoryLength;
+
+            if (framebufferStart >= memoryStart && framebufferEnd <= memoryEnd)
+            {
+                foundFramebuffer = TRUE;
+                break;
+            }
+        }
+
+        /* Advance to next CM_FULL_RESOURCE_DESCRIPTOR block in memory. */
+
+        list = (PCM_FULL_RESOURCE_DESCRIPTOR)(list->PartialResourceList.PartialDescriptors +
+            list->PartialResourceList.Count);
+    }
+
+    if (!foundFramebuffer)
+    {
+        CM_FULL_RESOURCE_DESCRIPTOR newRes;
+        ULONGLONG framebufferLength;
+
+        /* We need to re-allocate with room for a new resource descriptor */
+        resourceListSize = (UINT_PTR)list - (UINT_PTR)pResourceList;
+        pResourceList = (PCM_RESOURCE_LIST)ExAllocatePoolWithTag(NonPagedPool, resourceListSize + sizeof(CM_FULL_RESOURCE_DESCRIPTOR), VIOGPUTAG);
+        if (!pResourceList)
+        {
+            return STATUS_INSUFFICIENT_RESOURCES;
+        }
+        RtlCopyMemory(pResourceList, *ppResourceList, resourceListSize);
+        ExFreePoolWithTag(*ppResourceList, 0);
+        RtlZeroMemory(&newRes, sizeof(newRes));
+        newRes.PartialResourceList.Version = 1;
+        newRes.PartialResourceList.Revision = 1;
+        newRes.PartialResourceList.Count = 1;
+        framebufferLength = framebufferEnd - framebufferStart;
+        if (RtlCmEncodeMemIoResource(&newRes.PartialResourceList.PartialDescriptors[0], CmResourceTypeMemory, framebufferLength, framebufferStart) == STATUS_UNSUCCESSFUL)
+        {
+            RtlCmEncodeMemIoResource(&newRes.PartialResourceList.PartialDescriptors[0], CmResourceTypeMemoryLarge, framebufferLength, framebufferStart);
+        }
+        RtlCopyMemory((char *)pResourceList + resourceListSize, &newRes, sizeof(newRes));
+        pResourceList->Count++;
+        *ppResourceList = pResourceList;
+    }
+    return STATUS_SUCCESS;
+}
+
+NTSTATUS VioGpuDodPnpIrp(
+    IN PDEVICE_OBJECT pDevObj,
+    IN PIRP pIrp
+)
+{
+    PIO_STACK_LOCATION pStack;
+    KEVENT             event;
+    NTSTATUS           status;
+    IO_STATUS_BLOCK    ioStatus;
+    PIRP               newIrp;
+
+    pStack = IoGetCurrentIrpStackLocation(pIrp);
+    if (pStack->MajorFunction != IRP_MJ_PNP || pStack->MinorFunction != IRP_MN_QUERY_RESOURCES)
+    {
+        if (pStack->MajorFunction == IRP_MJ_PNP)
+        {
+            // unset custom flag
+            pStack->MinorFunction &= ~IRP_MN_CUSTOM_INJECTED;
+        }
+        return gOriginalPnpIrp(pDevObj, pIrp);
+    }
+
+    // Only modify IRP_MN_QUERY_RESOURCES
+    KeInitializeEvent(&event, SynchronizationEvent, FALSE);
+
+    newIrp = IoBuildSynchronousFsdRequest(
+        IRP_MJ_PNP,
+        pDevObj,
+        NULL,
+        0,
+        0,
+        &event,
+        &ioStatus
+    );
+    if (!newIrp)
+    {
+        return STATUS_INSUFFICIENT_RESOURCES;
+    }
+    newIrp->IoStatus.Status = STATUS_NOT_SUPPORTED;
+    IoGetNextIrpStackLocation(newIrp)->MinorFunction = IRP_MN_QUERY_RESOURCES | IRP_MN_CUSTOM_INJECTED;
+
+    status = IoCallDriver(pDevObj, newIrp);
+
+    if (status == STATUS_PENDING)
+    {
+        KeWaitForSingleObject(
+            &event,
+            Executive, // WaitReason
+            KernelMode, // must be Kernelmode to prevent the stack getting paged out
+            FALSE,
+            NULL // indefinite wait
+        );
+        status = ioStatus.Status;
+    }
+
+    status = InjectFramebufferResource((PCM_RESOURCE_LIST *)&ioStatus.Information);
+
+    pIrp->IoStatus.Information = ioStatus.Information;
+    pIrp->IoStatus.Status = status;
+    IoCompleteRequest(pIrp, IO_NO_INCREMENT);
+    return status;
+}
 
 VOID
 VioGpuDodDpcRoutine(
