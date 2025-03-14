@@ -235,13 +235,14 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Win8 Release|Win32'">
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(DDK_LIB_PATH)\displib.lib;virtiolib.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(DDK_LIB_PATH)\displib.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\VirtIO\objfre_win8_x86\i386\</AdditionalLibraryDirectories>
     </Link>
     <ClCompile>
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories);$(DDK_INC_PATH);$(SDK_INC_PATH);..\VirtIO;</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4201;4603;4627;4986;4987;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <PreprocessorDefinitions>_X86_=1;i386=1;STD_CALL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <Inf>
       <SpecifyDriverVerDirectiveDate>true</SpecifyDriverVerDirectiveDate>
@@ -269,12 +270,13 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Win10 Release|Win32'">
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(DDK_LIB_PATH)\displib.lib;virtiolib.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(DDK_LIB_PATH)\displib.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\VirtIO\objfre_win10_x86\i386\</AdditionalLibraryDirectories>
     </Link>
     <ClCompile>
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories);$(DDK_INC_PATH);$(SDK_INC_PATH);..\VirtIO;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_X86_=1;i386=1;STD_CALL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <PostBuildEvent>
       <Command>        packOne.bat Win10 x86 viogpudo</Command>
@@ -300,12 +302,13 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Win10 Debug|Win32'">
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(DDK_LIB_PATH)\displib.lib;virtiolib.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(DDK_LIB_PATH)\displib.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\VirtIO\objchk_win10_x86\i386\</AdditionalLibraryDirectories>
     </Link>
     <ClCompile>
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories);$(DDK_INC_PATH);$(SDK_INC_PATH);..\VirtIO;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_X86_=1;i386=1;STD_CALL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <PostBuildEvent>
       <Command>        packOne.bat $(TargetOS) $(TargetArch) viogpudo</Command>
@@ -321,9 +324,10 @@
     <ClCompile>
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories);$(DDK_INC_PATH);$(SDK_INC_PATH);..\VirtIO;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_X86_=1;i386=1;STD_CALL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(DDK_LIB_PATH)\displib.lib;virtiolib.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(DDK_LIB_PATH)\displib.lib</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>        packOne.bat $(TargetOS) $(TargetArch) viogpudo</Command>
@@ -333,9 +337,10 @@
     <ClCompile>
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories);$(DDK_INC_PATH);$(SDK_INC_PATH);..\VirtIO;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_WIN64;_AMD64_;AMD64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(DDK_LIB_PATH)\displib.lib;virtiolib.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(DDK_LIB_PATH)\displib.lib</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>        packOne.bat $(TargetOS) $(TargetArch) viogpudo</Command>
@@ -345,9 +350,10 @@
     <ClCompile>
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories);$(DDK_INC_PATH);$(SDK_INC_PATH);..\VirtIO;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_WIN64;_AMD64_;AMD64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(DDK_LIB_PATH)\displib.lib;virtiolib.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(DDK_LIB_PATH)\displib.lib</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>        packOne.bat $(TargetOS) $(TargetArch) viogpudo</Command>
@@ -357,9 +363,10 @@
     <ClCompile>
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories);$(DDK_INC_PATH);$(SDK_INC_PATH);..\VirtIO;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_WIN64;_AMD64_;AMD64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(DDK_LIB_PATH)\displib.lib;virtiolib.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(DDK_LIB_PATH)\displib.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\VirtIO\objfre_win10_amd64\amd64\</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -369,9 +376,10 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Win10 Release|ARM64'">
     <ClCompile>
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories);$(DDK_INC_PATH);$(SDK_INC_PATH);..\VirtIO;</AdditionalIncludeDirectories>
+      <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(DDK_LIB_PATH)\displib.lib;virtiolib.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(DDK_LIB_PATH)\displib.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\VirtIO\objfre_win10_arm64\arm64\</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -382,9 +390,10 @@
     <ClCompile>
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories);$(DDK_INC_PATH);$(SDK_INC_PATH);..\VirtIO;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_WIN64;_AMD64_;AMD64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(DDK_LIB_PATH)\displib.lib;virtiolib.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(DDK_LIB_PATH)\displib.lib</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>        packOne.bat $(TargetOS) $(TargetArch) viogpudo</Command>
@@ -393,9 +402,10 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Win10 Debug|ARM64'">
     <ClCompile>
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories);$(DDK_INC_PATH);$(SDK_INC_PATH);..\VirtIO;</AdditionalIncludeDirectories>
+      <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(DDK_LIB_PATH)\displib.lib;virtiolib.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(DDK_LIB_PATH)\displib.lib</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>        packOne.bat $(TargetOS) $(TargetArch) viogpudo</Command>
@@ -405,6 +415,7 @@
     <ClCompile>
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories);$(DDK_INC_PATH);$(SDK_INC_PATH);..\VirtIO;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_WIN64;_AMD64_;AMD64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <Inf>
       <SpecifyDriverVerDirectiveDate>true</SpecifyDriverVerDirectiveDate>
@@ -413,7 +424,7 @@
       <KmdfVersionNumber />
     </Inf>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(DDK_LIB_PATH)\displib.lib;virtiolib.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(DDK_LIB_PATH)\displib.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\VirtIO\objfre_win8_amd64\amd64\</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -424,6 +435,7 @@
     <ClCompile>
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories);$(DDK_INC_PATH);$(SDK_INC_PATH);..\VirtIO;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_WIN64;_AMD64_;AMD64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <Inf>
       <SpecifyDriverVerDirectiveDate>true</SpecifyDriverVerDirectiveDate>
@@ -433,7 +445,7 @@
       </KmdfVersionNumber>
     </Inf>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(DDK_LIB_PATH)\displib.lib;virtiolib.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(DDK_LIB_PATH)\displib.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\VirtIO\objfre_win8_amd64\amd64\</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
